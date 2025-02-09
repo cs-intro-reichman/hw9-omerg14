@@ -57,8 +57,29 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {		
-		//// Replace the following statement with your code
+
+	public int malloc(int length) {
+		if (length <= 0) {
+		}
+	
+		ListIterator freeIterator = freeList.iterator();
+	
+		while (freeIterator.hasNext()) {
+			MemoryBlock current = freeIterator.next();
+	
+			if (current.length == length) {
+				allocatedList.addLast(current);
+				freeList.remove(current);
+				return current.baseAddress;
+			} else if (current.length > length) {
+				MemoryBlock block = new MemoryBlock(current.baseAddress, length);
+				allocatedList.addLast(block);
+				current.baseAddress += length;
+				current.length -= length;
+				return block.baseAddress;
+			}
+		}
+	
 		return -1;
 	}
 
@@ -71,7 +92,25 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		if(allocatedList.getSize() == 0){
+		throw new IllegalArgumentException(
+				"index must be between 0 and size");
+		}
+		ListIterator allocatedIterator = allocatedList.iterator();
+		MemoryBlock targetBlock = null;
+
+		while (allocatedIterator.hasNext()){
+			MemoryBlock current = allocatedIterator.next();
+			if (current.baseAddress == address){
+				targetBlock = current;
+				 break;
+			}
+		}
+
+		if (targetBlock != null){
+			freeList.addLast(targetBlock);
+			allocatedList.remove(targetBlock);
+		}
 	}
 	
 	/**
@@ -88,6 +127,24 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		//// Write your code here
-	}
+		if (freeList.getSize() <= 1) {
+			return; 
+		}
+	
+		ListIterator freeIterator = freeList.iterator();
+		while (freeIterator.hasNext()) {
+			MemoryBlock currentBlock = freeIterator.next();
+			ListIterator innerIterator = freeList.iterator();
+
+			while (innerIterator.hasNext()) {
+				MemoryBlock nextBlock = innerIterator.next();
+	
+				if (nextBlock != currentBlock && currentBlock.baseAddress + currentBlock.length == nextBlock.baseAddress) {
+					currentBlock.length += nextBlock.length;
+					freeList.remove(nextBlock);
+					innerIterator = freeList.iterator();
+				}
+			}
+		}
+	}	
 }

@@ -60,6 +60,7 @@ public class MemorySpace {
 
 	public int malloc(int length) {
 		if (length <= 0) {
+			throw new IllegalArgumentException("Length must be positive");
 		}
 	
 		ListIterator freeIterator = freeList.iterator();
